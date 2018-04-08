@@ -12,7 +12,7 @@ export interface Configs {
 import * as middlewares from '../http/middlewares';
 
 //Importing controllers
-import {Controllers} from '../http/controllers/index';
+import { controllers } from '../http/controllers/index';
 
 class Server {
     //Helpers for initiating a singleton of the class
@@ -28,29 +28,37 @@ class Server {
      * @param configs Provide configs for the server. See Config interface for
      * properties
      */
-     start(configs: Configs = <Configs>{ port: 9090 }): Promise<void> {
-         return new Promise((resolve, reject) => {
-             //Setting configs
-             this.configs = Object.assign(this.configs, configs);
+    start(configs: Configs = <Configs>{ port: 9090 }): Promise<void> {
+        return new Promise((resolve, reject) => {
+            //Setting configs
+            this.configs = Object.assign(this.configs, configs);
 
-             //Creating the express app
-             var app = express();
+            //Creating the express app
+            var app = express();
 
-             //Attaching body parser
-             app.use(bodyParser.json());
+            //Attaching body parser
+            app.use(bodyParser.urlencoded({
+                extended: true
+            }));
+            app.use(bodyParser.json());
 
-             //Register static route
-             app.use(express.static(path.join(__dirname, '../../dist')));
+            //Register static route
+            app.use(express.static(path.join(__dirname, '../../dist')));
 
-             //Register fallback route to index.html
-             app.get('/*', (request, result) => result.sendFile(path.join(__dirname, '../../dist/index.html')))
+            app.post('/api/auth', controllers.api.auth.auth);
+            app.get('/api/test', middlewares.auth, (request, response) => {
+                response.json(request.user);
+            });
 
-             app.listen(this.configs.port, () => {
-                 console.log('Listening on http://localhost:' + this.configs.port + '!');
-                 resolve();
-             });
-         });
-     }
+            //Register fallback route to index.html
+            app.get('/*', (request, result) => result.sendFile(path.join(__dirname, '../../dist/index.html')))
+
+            app.listen(this.configs.port, () => {
+                console.log('Listening on http://localhost:' + this.configs.port + '!');
+                resolve();
+            });
+        });
+    }
 }
 
 export let server = Server.getInstance();

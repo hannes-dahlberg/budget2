@@ -1,9 +1,8 @@
 import Controller from './controller'
+import Auth from './api/auth';
 
-type controllers = { [key:string]: Controller|controllers }
-
-export let Controllers: controllers = {
-    API: {
-
+export let controllers = {
+    api: {
+        auth: Auth
     }
 }
