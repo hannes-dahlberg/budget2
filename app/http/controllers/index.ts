@@ -1,8 +1,8 @@
 import Controller from './controller'
-import Auth from './api/auth';
+import AuthController from './api/auth_controller';
 
 export let controllers = {
     api: {
-        auth: Auth
+        auth: AuthController
     }
 }

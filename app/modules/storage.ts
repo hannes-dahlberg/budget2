@@ -2,6 +2,12 @@ import * as sqlite3 from 'sqlite3';
 
 export type entity = { [key:string]: any };
 
+export type tableDirective = string;
+export type selectDirective = string;
+export type whereDirective = string|[string, string, string|number]|{ column: string, operator: string, value: string|number}
+export type orderByDirective = string|[string, boolean]|{ column: string, desc: boolean }
+export type limitDiretive = number|[number, number];
+
 class Storage {
     //Helpers for initiating a singleton of the class
     private static instance: Storage;
@@ -111,6 +117,60 @@ class Storage {
                 resolve(rows);
             });
         });
+    }
+
+    public get({ table, select, where, orderBy, limit }: { table: tableDirective, select?: selectDirective|selectDirective[], where?: whereDirective|whereDirective[], orderBy?: orderByDirective|orderByDirective[], limit?: limitDiretive }): Promise<entity[]> {
+        return new Promise((resolve, reject) => {
+            this.db.all(`SELECT `
+                + (select ? this.prepareSelectStatement(select) : '*')
+                + ` FROM [${table}]`
+                + (where ? ` ` + this.prepareWhereStatement(where) : ``)
+                + (orderBy ? ` ` + this.prepareOrderByStatement(orderBy) : ``)
+                + (limit ? ` ` + this.prepareLimitStatement(limit) : ``), (error: Error, rows: any[]) => {
+                    if(error) { reject(error); return; }
+                    resolve(rows);
+                });
+        });
+    }
+    private prepareSelectStatement(select: selectDirective|selectDirective[]): string {
+        if(typeof select === 'string') {
+            return select;
+        } else if(select instanceof Array) {
+            return select.map((select: string) => `[${select}]`).join(', ');
+        }
+    }
+    private prepareWhereStatement = function(where: whereDirective|whereDirective[], andOr: string = 'and', root: boolean = true): string {
+        if(typeof where === 'string') {
+            return where;
+        } else if(where instanceof Array) {
+            if(where.length == 3 && typeof where[0] === 'string' && typeof where[1] === 'string' && (typeof where[2] === 'string' || typeof where[2] === 'number')) {
+                return (root ? `WHERE ` : ``) + `[${where[0]}] ${where[1]} ` + (typeof where[2] === 'string' ? `'${where[2]}'` : `${where[2]}`);
+            } else {
+                return `WHERE ` + (where as any).map((where: whereDirective) => this.prepareWhereStatement(where, andOr, false)).join(` ` + andOr.toUpperCase() + ` `);
+            }
+        } else {
+            return (root ? `WHERE ` : ``) + `[${where.column}] ${where.operator} ` + (typeof where.value === 'string' ? `'${where.value}'` : `${where.value}`);
+        }
+    }
+    private prepareOrderByStatement(orderBy: orderByDirective|orderByDirective[], root: boolean = true): string {
+        if(typeof orderBy === 'string') {
+            return orderBy;
+        } else if (orderBy instanceof Array) {
+            if(orderBy.length == 3 && typeof orderBy[0] === 'string' && typeof orderBy[1] === 'boolean') {
+                return (root ? `ORDER BY `: ``) + `[${orderBy[0]}]` + (orderBy[1] ? ` DESC` : ``);
+            } else {
+                return 'ORDER BY ' + (orderBy as any).map((orderBy: orderByDirective) => this.prepareOrderByStatement(orderBy, false)).join(`, `);
+            }
+        } else {
+            return (root ? `ORDER BY `: ``) + `[${orderBy.column}]` + (orderBy.desc ? ` DESC` : ``);
+        }
+    }
+    private prepareLimitStatement(limit: limitDiretive): string {
+        if(typeof limit === 'number') {
+            return `LIMIT ` + limit.toString();
+        } else {
+            return `LIMIT ${limit[0]}, ${limit[1]}`;
+        }
     }
 
     public insert({ data, table }: { data: entity, table: string }): Promise<entity> {

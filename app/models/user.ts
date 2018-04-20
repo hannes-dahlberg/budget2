@@ -7,19 +7,20 @@ export default class User extends Model {
 
     public static getByEmail(email: string): Promise<entity> {
         return new Promise((resolve, reject) => {
-            storage.db.get(`SELECT * FROM [` + this.table + `] WHERE [email] = '` + email + `'`, (error: Error, row: any) => {
+            storage.db.get(`SELECT * FROM [${this.table}] WHERE [email] = '${email}'`, (error: Error, row: any) => {
                 if(error) { reject(error); return; }
                 resolve(row);
             });
         });
     }
 
-    public static create(email: string, password: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            storage.db.run(`INSERT INTO [${this.table}] ([email], [password]) VALUES('${email}', '${helpers.hash(password)}')`, (error: Error) => {
-                if(error) { reject(error); return; }
-                resolve();
+    public static create(data?: entity): Promise<User> {
+        if(!data.email || !data.password) {
+            return new Promise((resolve, reject) => {
+                reject(new Error('Email and or password is missing'));
             });
-        });
+        }
+
+        return super.create(data);
     }
 }

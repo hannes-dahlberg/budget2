@@ -19,7 +19,7 @@ A verification consist of one or multiple transactions. It concludes a transacti
 
 Because a transaction can be split onto multiple accounts these splits are defined as transactions. And instead of having child/parent transactions a verification acts as a parent and transactions as children.
 
-Even though date is defined a period needs to be set as well (default to date).
+Even though date is defined, a period needs to be set as well (default to date).
 
 Period is defined by year and month (not day)
 
@@ -60,7 +60,7 @@ Someone able to access the system. Visitors can only se landing page / login pag
 * ***Owner***
 * ***Users***
 
-Each user is part of one ore multiple groups. A group is then related to *verifications*, *accounts* and *budget*
+Each user is part of one or multiple groups. A group is then related to *verifications*, *accounts* and *budget*
 
 Every group has a owner which defines whom has the right to add and remove users to it. Ownership is possible to transfer to another user.
 

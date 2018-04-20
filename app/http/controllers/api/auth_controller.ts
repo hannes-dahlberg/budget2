@@ -8,7 +8,7 @@ import { entity } from '../../../modules/storage';
 
 /*Authentication controller. Takes care of authentication, registration
 activation and password resets*/
-export default class Auth extends Controller {
+export default class AuthController extends Controller {
     //Authentication controller
     public static auth(request: Request, response: Response): void {
         /*Check request body for email and password. Sends 500 error with

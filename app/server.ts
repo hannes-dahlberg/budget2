@@ -1,6 +1,10 @@
-import {server,Configs} from './modules/server';
 import { server, Configs } from './modules/server';
 import { storage } from './modules/storage';
+
+/*import User from './models/user';
+User.create('user@test.com', 'test').then(() => {
+    console.log('USER CREATED')
+});*/
 
 //Global error handling
 process.on('uncaughtException', function(error) {
